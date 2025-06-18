@@ -8,15 +8,18 @@ use App\Enums\Operator;
 use App\Http\Requests\StoreCriterionRequest;
 use App\Http\Requests\UpdateCriterionRequest;
 use App\Models\Criterion;
+use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Models\Milestone;
+use Illuminate\Support\Facades\Auth;
 
 class CriterionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): RedirectResponse
     {
         return redirect(route('milestones.index'));
     }
@@ -24,21 +27,21 @@ class CriterionController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): void
     {
-        //
+        abort(500, "Not implemented yet");
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCriterionRequest $request)
+    public function store(StoreCriterionRequest $request): RedirectResponse
     {
         $rv = $request->validated();
 
         $milestone = Milestone::findOrFail($rv['milestone_id']);
 
-        if (!$request->user()->hasTeamPermission($milestone->team, "org:create")) {
+        if (!Auth::user()->hasTeamPermission($milestone->team, "org:create")) {
             abort(400, "Je hebt geen rechten om criteria te maken.");
         }
 
@@ -60,15 +63,15 @@ class CriterionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Criterion $criterion)
+    public function show(Criterion $criterion): Response
     {
-        //
+        return redirect(route('milestones.index'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Criterion $criterion)
+    public function edit(Criterion $criterion): RedirectResponse
     {
         return redirect(route('milestone:edit', ['milestone' => $criterion->milestone_id]));
     }
@@ -76,10 +79,10 @@ class CriterionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCriterionRequest $request, Criterion $criterion)
+    public function update(UpdateCriterionRequest $request, Criterion $criterion): RedirectResponse
     {
         $team = $criterion->milestone->team;
-        if (!$request->user()->hasTeamPermission($team, 'org:edit')) {
+        if (!Auth::user()->hasTeamPermission($team, 'org:edit')) {
             abort(403, "Je hebt niet genoeg rechten");
         }
 
@@ -91,7 +94,7 @@ class CriterionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, Criterion $criterion)
+    public function destroy(Request $request, Criterion $criterion): RedirectResponse
     {
         $team = $criterion->milestone->team;
         if (!$request->user()->hasTeamPermission($team, 'org:delete')) {

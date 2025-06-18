@@ -2,10 +2,12 @@
 <script setup>
 import {router, usePage} from '@inertiajs/vue3';
 import Criteria from './Criteria.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 const page = usePage();
 const props = defineProps({
     milestone: Object,
     can_edit: Boolean,
+    id_name_map: Array,
     elock: Object
 })
 
@@ -131,36 +133,48 @@ function save_milestone() {
                     </div>
                 </div>
                 <div>
-                    <button @click="save_milestone" id="mst_sav">Opslaan</button><br>
-                    <button @click="restore_milestone" id="mst_ret">Annuleren</button><br>
-                    <button @click="remove_milestone" id="mst_del">Verwijder</button><br>
+                    <button @click="save_milestone" type="button" id="mst_sav">Opslaan</button><br>
+                    <button @click="restore_milestone" type="button" id="mst_ret">Annuleren</button><br>
+                    <button @click="remove_milestone" type="button" id="mst_del">Verwijder</button><br>
                 </div>
             </div>
         </form>
         <div v-else class="flex flex-row justify-between">
             <div class=" flex flex-row">
+                    <div class="mdrag">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="4" r="1" transform="rotate(90 8 4)" stroke="black" stroke-width="2"/>
+                            <circle cx="16" cy="4" r="1" transform="rotate(90 16 4)" stroke="black" stroke-width="2"/>
+                            <circle cx="8" cy="12" r="1" transform="rotate(90 8 12)" stroke="black" stroke-width="2"/>
+                            <circle cx="16" cy="12" r="1" transform="rotate(90 16 12)" stroke="black" stroke-width="2"/>
+                            <circle cx="8" cy="20" r="1" transform="rotate(90 8 20)" stroke="black" stroke-width="2"/>
+                            <circle cx="16" cy="20" r="1" transform="rotate(90 16 20)" stroke="black" stroke-width="2"/>
+                        </svg>
+                    </div>
                 <span  class="border border-black-600 rounded-b" :style="style_color(milestone)"></span> {{milestone.name}}
              </div>
             <div class="flex flex-row">
                 <label> Op de kaart:</label>
                 <input class="m-1" type='checkbox' disabled v-model='milestone.do_map'>
             </div>
-            <div class="flex flex-row">
+            <div :style="{visibility: elock.isEditing() ? 'hidden' : 'visible'}"  class="flex flex-row">
                 <button @click="edit_milestone" >Edit</button><br>
             </div>
         </div>
     </div>
-    <div v-if="!edit_lock.isEditing()">
-            <button @click="create_criterion">Maak een criterion</button>
-    </div>
-    <div class="mx-4">
-        <div v-for="crit in milestone.criteria" class="border rounded-b border-blue-500 p-1" >
+    <div class="ml-4">
+        <div v-for="crit in milestone.criteria" class="border rounded-b border-blue-500 p-1 my-2" >
                 <Criteria
                     :elock="elock"
                     :criterion="crit"
+                    :id_name_map="props.id_name_map"
+                    :milestone_id="milestone.id"
                     @destroy="destroy_criterion"
                 />
         </div>
+    </div>
+    <div v-if="!edit_lock.isEditing()" class="ml-4">
+            <SecondaryButton @click="create_criterion">Maak een criterion</SecondaryButton>
     </div>
 </div>
 </template>

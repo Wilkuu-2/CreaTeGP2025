@@ -14,6 +14,7 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     terms: false,
+    is_farmer: false,
 });
 
 const submit = () => {
@@ -95,6 +96,17 @@ const submit = () => {
                         </div>
                     </div>
                     <InputError class="mt-2" :message="form.errors.terms" />
+                </InputLabel>
+            </div>
+            <div>
+                <InputLabel for="farmer">
+                    <div class="flex items-center">
+                        <Checkbox id="farmer" v-model:checked="form.is_farmer" name="farmer" />
+
+                        <div class="ms-2">
+                            Ik ben een boer.
+                        </div>
+                    </div>
                 </InputLabel>
             </div>
 

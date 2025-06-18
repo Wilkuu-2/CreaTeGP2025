@@ -4,14 +4,14 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import MilestoneDisplay from '@/Components/MilestoneDisplay.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue'
-import { onMounted, onUpdated, ref } from 'vue';
+import { onMounted, onUpdated, ref, computed} from 'vue';
 import draggable from 'vuedraggable'
 
 
 const edit_lock = {
     milestone: -1,
     criterion: -1,
-    isEditing: function () { return this.milestone > -1 || this.criterion > -1 },
+    isEditing: function () { return !props.can_edit ||  this.milestone > -1 || this.criterion > -1;  },
     takeCriterion: function (criterion, milestone) {
         if (this.isEditing()) {
             return false;
@@ -50,6 +50,7 @@ const page = usePage();
 const props = defineProps({
         milestones: Array,
         criteria: Array,
+        can_edit: Boolean,
         new_milestone: Boolean,
         new_criteria: Boolean,
         editing_milestone: Number,
@@ -107,6 +108,13 @@ function create_milestone() {
 
 const original_tree = ref([]);
 const tree = ref([]);
+const milestone_name_id = computed(() => {
+    var arr = [];
+    tree.value.forEach(m => {
+        arr.push({id: m.id ,name: m.name})
+    })
+    return arr;
+})
 
 function constructTree(milestones, criteria) {
     var arr = []
@@ -162,29 +170,31 @@ onUpdated(() => {
             </div>
         </template>
 
-    <div>
-        <draggable
-                v-model="tree"
-                group="milestones"
-                :disabled="elock.isEditing()"
-                @start="drag=true"
-                @end="drag=false"
-                item-key="id"
-                >
-                <template #item="{element}">
-                    <MilestoneDisplay
-                        :elock="elock"
-                        :milestone="element"
-                        />
-                </template>
-        </draggable>
-        <div class="flex flex-row justify-around m-5 ">
-           <PrimaryButton :onclick="create_milestone">Maak een mijlpaal aan!</PrimaryButton>
-           <PrimaryButton :onclick="reorder_milestones">Orde opslaan</PrimaryButton>
+        <div>
+            <div class="flex flex-row justify-around m-5" v-if="props.can_edit">
+               <PrimaryButton :disabled="elock.isEditing()" :onclick="create_milestone">Maak een mijlpaal aan!</PrimaryButton>
+               <PrimaryButton :disabled="elock.isEditing()" :onclick="reorder_milestones">Orde opslaan</PrimaryButton>
+            </div>
+            <draggable
+                    v-model="tree"
+                    group="milestones"
+                    handle=".mdrag"
+                    :disabled="elock.isEditing()"
+                    @start="drag=true"
+                    @end="drag=false"
+                    item-key="id"
+                    >
+                    <template #item="{element}">
+                        <MilestoneDisplay
+                            :elock="elock"
+                            :milestone="element"
+                            :id_name_map="milestone_name_id"
+                            />
+                    </template>
+            </draggable>
         </div>
-    </div>
-    <pre>{{props.errors}}</pre>
-    <pre>{{elock}}</pre>
-    <pre>{{tree}}</pre>
+        <!-- <pre>{{props.errors}}</pre> -->
+        <!-- <pre>{{elock}}</pre> -->
+        <!-- <pre>{{tree}}</pre> -->
     </AppLayout>
 </template>

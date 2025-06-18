@@ -87,36 +87,45 @@ function setup_map() {
 }
 
 function stylePolygon(feature){
-    let color = "#3333ee";
-    switch (feature.properties.category) {
-        case "Grasland":
-            color = "#11ee11";
-            break;
-        case "Bouwland":
-            color = "#eeee33";
-            break;
-    }
+    if (feature.geometry.type = 'polygon') {
+        let color = "#3333ee";
+        switch (feature.properties.category) {
+            case "Grasland":
+                color = "#11ee11";
+                break;
+            case "Bouwland":
+                color = "#eeee33";
+                break;
+        }
 
-    switch (feature.properties.gewascode) {
-        case 1940:
-            color = "#ee8888";
-        break;
-    }
+        switch (feature.properties.gewascode) {
+            case 1940:
+                color = "#ee8888";
+            break;
+        }
 
-    return {
-        "color": color,
-        "weight": 2,
-        "opacity": 0.65
-    };
+        return {
+            "color": color,
+            "weight": 2,
+            "opacity": 0.65
+        };
+    } else {
+        return {
+            "color": "#AAAAAA",
+            "weight": 2,
+            "opacity": 0.65
+        };
+    }
 }
 
 function filterPoint(feature, layer) {
-    return !ids.has(feature.properties.id);
+    // return !ids.has(feature.properties.id);
 }
 
 function processPoint(feature, layer) {
-    ids.add(feature.properties.id);
-    layer.bindPopup(feature.properties.gewas)
+    console.log()
+    // ids.add(feature.properties.id);
+   //  layer.bindPopup(feature.properties.gewas)
 }
 
 function refreshMap(bounds) {
@@ -130,7 +139,8 @@ function refreshMap(bounds) {
     }
     wfsLayer.clearLayers();
     axios.post(
-        route('api:tiles'),
+        // route('api:tiles'),
+        route('api:farmers'),
         request).then()
         .then(response => {
             const data = response.data

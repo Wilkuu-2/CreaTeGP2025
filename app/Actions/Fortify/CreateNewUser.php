@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\Farmstead;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ class CreateNewUser implements CreatesNewUsers
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
+            'is_farmer' => 'required|boolean'
         ])->validate();
 
         return DB::transaction(function () use ($input) {
@@ -33,12 +35,26 @@ class CreateNewUser implements CreatesNewUsers
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
-            ]), function (User $user) {
-                $this->createTeam($user);
+            ]), function (User $user) use ($input) {
+                // if ($input['is_farmer']) {
+                //     $this->createFarmstead($user);
+                // }
+                // $this->createTeam($user);
             });
         });
     }
 
+    protected  function createFarmstead(User $user): void {
+        $farmstead = Farmstead::create([
+            'name' => explode(' ', $user->name, 2)[0]."s Boerderij",
+            'email' => $user->email,
+            'phone_number' => null,
+            'location' => null,
+            'show_email' => false,
+            'show_number' => false,
+        ]);
+        $user->farmstead = $farmstead->id;
+    }
     /**
      * Create a personal team for the user.
      */

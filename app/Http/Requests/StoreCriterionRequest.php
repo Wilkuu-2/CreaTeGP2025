@@ -6,6 +6,7 @@ use App\Enums\DType;
 use App\Enums\Operator;
 use App\Enums\CType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class StoreCriterionRequest extends FormRequest
@@ -15,8 +16,10 @@ class StoreCriterionRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // TODO: Admin priviledges
         return true;
     }
+
 
     /**
      * Get the validation rules that apply to the request.

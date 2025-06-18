@@ -7,38 +7,43 @@ use App\Http\Requests\UpdateMilestoneRequest;
 use App\Models\Criterion;
 use App\Models\Milestone;
 use App\Models\Team;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Response;
 
 class MilestoneController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $request->validate([
             "tid" => "integer",
         ]);
         $tid = intval($request->input("tid", Auth::user()->current_team_id));
 
+        /** @var Team $team */
+        $team = Team::findOrFail($tid);
         $milestones = Milestone::whereTeamId($tid)->orderBy('order')->get();
         $mids = $milestones->pluck('id');
         $criteria = Criterion::whereIn('milestone_id', $mids)->get();
-
+        $can_edit = Auth::user()->hasTeamPermission($team, 'org:edit');
         return Inertia::render("Milestones", [
                 'milestones' => $milestones,
                 'criteria' => $criteria,
                 'tid' => $tid,
+                'can_edit' => $can_edit,
             ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create(Request $request): Response
     {
         $request->validate([
             "tid" => "integer",
@@ -59,13 +64,13 @@ class MilestoneController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMilestoneRequest $request)
+    public function store(StoreMilestoneRequest $request): RedirectResponse
     {
 
         $rv = $request->validated();
         $tid = $rv['tid'];
         $team = Team::findOrFail($tid);
-        if (!$request->user()->hasTeamPermission($team, 'org:create')) {
+        if (!Auth::user()->hasTeamPermission($team, 'org:create')) {
             abort(403, "Je hebt niet genoeg rechten");
         }
 
@@ -88,7 +93,7 @@ class MilestoneController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Milestone $milestone)
+    public function show(Milestone $milestone): Response
     {
         $milestones = Milestone::whereTeamId($milestone->team_id)->orderBy('order')->get();
         $mids = $milestones->pluck('id');
@@ -104,7 +109,7 @@ class MilestoneController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Milestone $milestone)
+    public function edit(Milestone $milestone): Response
     {
         $milestones = Milestone::whereTeamId($milestone->team_id)->orderBy('order')->get();
         $mids = $milestones->pluck('id');
@@ -121,10 +126,10 @@ class MilestoneController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMilestoneRequest $request, Milestone $milestone)
+    public function update(UpdateMilestoneRequest $request, Milestone $milestone): RedirectResponse
     {
         $team = Team::findOrFail($milestone->team_id);
-        if (!$request->user()->hasTeamPermission($team, 'org:edit')) {
+        if (!Auth::user()->hasTeamPermission($team, 'org:edit')) {
             abort(403, "Je hebt niet genoeg rechten");
         }
 
@@ -136,7 +141,7 @@ class MilestoneController extends Controller
     /**
     * Update the order of criteria and milestones
     */
-    public function reorder(Request $request) {
+    public function reorder(Request $request): RedirectResponse {
         // TODO: Make sure that the criteria id's are unique
        $obj =  $request->validate([
                 'tid' => 'integer|required|exists:teams,id',
@@ -183,7 +188,7 @@ class MilestoneController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, Milestone $milestone)
+    public function destroy(Request $request, Milestone $milestone): RedirectResponse
     {
         $tid = $milestone->team_id;
         $team = Team::findOrFail($tid);
