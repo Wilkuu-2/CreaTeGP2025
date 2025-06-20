@@ -32,7 +32,7 @@ class MilestoneController extends Controller
         $mids = $milestones->pluck('id');
         $criteria = Criterion::whereIn('milestone_id', $mids)->get();
         $can_edit = Auth::user()->hasTeamPermission($team, 'org:edit');
-        return Inertia::render("Milestones", [
+        return Inertia::render("OrganizationMilestones", [
                 'milestones' => $milestones,
                 'criteria' => $criteria,
                 'tid' => $tid,

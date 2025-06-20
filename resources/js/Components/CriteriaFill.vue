@@ -3,6 +3,8 @@ import {router, usePage } from '@inertiajs/vue3';
 import {computed} from 'vue'
 import VueSelect from 'vue3-select-component'
 const page = usePage();
+import {milestoneTag} from '@/milestones';
+import {id2textcolor,id2color} from "@/util"
 
 
 const props = defineProps({
@@ -15,6 +17,7 @@ const criterion = props.criterion;
 const complete = computed(() => {
     return props.eval_table[props.milestone_id].criteria[criterion.id]
 })
+
 
 const operator_table = {
     'gte': "Tenminste",
@@ -35,7 +38,7 @@ const display_value = computed(() => {
                     return m.name;
                 }
             }
-            return "";
+            return "ONTBEKEND!";
         case 'data':
             switch (criterion.type) {
                 case 'int':
@@ -48,6 +51,8 @@ const display_value = computed(() => {
         break;
     }
 })
+
+
 const noname = computed(() => criterion.operator == 'link')
 </script>
 
@@ -62,14 +67,27 @@ const noname = computed(() => criterion.operator == 'link')
             <span>{{display_operator}}:&nbsp;</span>
             <template v-if="criterion.constant_type == 'data' || criterion.type != 'none'">
                 <template v-if="criterion.type == 'double' || criterion.type == 'int'">
-                    <input :id="'fill' + criterion.id" :name="'fill' + criterion.id" type="number" step="any" v-model="criterion.fill.double1"/>
+                    <input  :id="'fill' + criterion.id"
+                            :name="'fill' + criterion.id" type="number"
+                            step="any"
+                            v-model="criterion.fill.double1"
+                            class="py-px"/>
                     <span>&nbsp;/&nbsp;</span>
                 </template>
                 <template v-else>
                     <input  :id="'fill' + criterion.id" :name="'fill' + criterion.id" type="checkbox" v-model="criterion.fill.bool1"/>
                 </template>
             </template>
-            <span>{{display_value}}</span>
+                <div v-if="criterion.constant_type == 'milestone'"
+                    class="inline rounded-md px-1 py-1pt"
+                    :style="{'background-color': id2color(Number.parseInt(criterion.constant), props.id_name_map)}">
+                    <a
+                        :href="'#' + milestoneTag(criterion.constant)"
+                        :style="{'color': id2textcolor(Number.parseInt(criterion.constant), props.id_name_map)}">
+                        {{display_value}}
+                    </a>
+                </div>
+            <span v-else >{{display_value}}</span>
         </div>
         <div>
         </div>

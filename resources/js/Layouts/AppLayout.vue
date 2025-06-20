@@ -99,7 +99,7 @@ const logout = () => {
                         </div>
 
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
-                            <TeamDropdown v-if="$page.props.auth.user.all_teams.length > 0" />
+                            <TeamDropdown v-if="$page.props.auth.user != null && $page.props.auth.user.all_teams.length > 0" />
                             <div v-else>
                                 <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')" :active="route().current('teams.create')">
                                     Geen organisatie? Maak er een!
