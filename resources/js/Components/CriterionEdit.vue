@@ -1,6 +1,7 @@
 <script setup>
 import VueSelect from 'vue3-select-component';
 import {makeMilestoneOptions} from '@/milestones'
+import {computed} from 'vue';
 const props = defineProps({
     elock: Object,
     criterion: Object,
@@ -8,14 +9,20 @@ const props = defineProps({
     mid: Number,
 });
 
+const emit = defineEmits([ 'remove'  ]);
+
 const criterion = props.criterion;
 const name_id_map = props.name_id_map;
 const elock = props.elock;
+
+const columnstyle = computed(() =>{
+    return (criterion.noname() ? "" : "1fr ") + "1fr 2fr" + ((elock.isEditing() && !elock.matchCriterion(criterion.id)) ? "" : " 7em");
+})
 </script>
 
 <template>
     <div>
-        <div class="flex flex-row justify-between">
+        <div class="border border-lime-600 p-1 rounded-md grid" :style="{'grid-template-columns': columnstyle}">
             <div :style="{display: !criterion.noname() ? 'inline' : 'none'}" >
                 <label for="name">Omschrijving</label><br/>
                 <input type="text" id="name" :disabled="criterion.noname()" :required="criterion.noname()" v-model="criterion.name">
@@ -35,14 +42,14 @@ const elock = props.elock;
                 <div v-if="criterion.type == 'double' || criterion.type == 'int'">
                     <label for="constant">Vergelijk met:</label><br/>
                     <input id="constant" name="constant" type="number" v-model="criterion.constant"/>
-                    <input id="unit" name="unit" type="text" v-model="criterion.unit">
+                    <input class="mx-2 min-w-8 max-w-24" id="unit" name="unit" type="text" v-model="criterion.unit">
                 </div>
                 <div v-if="criterion.type == 'bool'">
                     <label for="constant">Correcte antwoord</label><br/>
                     <input id="constant" name="constant" type="checkbox" v-model="criterion.constant"/>
                 </div>
             </div>
-            <div v-if="criterion.constant_type == 'milestone'">
+            <div v-if="criterion.constant_type == 'milestone'" class="mx-4">
                 <label for="constant">Doel:</label><br/>
                 <VueSelect
                     v-model="criterion.constant"
@@ -53,7 +60,7 @@ const elock = props.elock;
             <div>
                 <button @click="criterion.save_criterion(elock)" type="button" id="crit_sav">Opslaan</button><br>
                 <button @click="criterion.restore_criterion(elock)" type="button" id="crit_ret">Annuleren</button><br>
-                <button @click="criterion.remove_criterion(elock)"  id="crit_del">Verwijder</button><br>
+                <button @click="criterion.remove_criterion(elock, (id) => emit('remove', id))"  id="crit_del">Verwijder</button><br>
             </div>
         </div>
     </div>

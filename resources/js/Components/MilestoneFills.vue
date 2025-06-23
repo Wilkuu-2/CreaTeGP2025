@@ -23,7 +23,7 @@ function style_color(mst) {
 
 <template>
 <div class="m-5">
-    <div class="border rounded-b border-blue-500 p-1">
+    <div class="border rounded-b border-lime-500 p-1">
         <div class="flex flex-row justify-between items-center">
             <div class=" flex flex-row items-center">
                 <input style="display: inline;" type="checkbox" disabled v-model="complete_milestone">&nbsp;
@@ -37,7 +37,7 @@ function style_color(mst) {
         </div>
     </div>
     <div class="ml-4">
-        <div v-for="crit in milestone.criteria" class="border rounded-b border-blue-500 p-1 my-2" >
+        <div v-for="crit in milestone.criteria" class="border rounded-b border-lime-500 p-1 my-2" >
                 <CriteriaFill
                     :criterion="crit"
                     :id_name_map="props.id_name_map"

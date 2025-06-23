@@ -216,6 +216,7 @@ class FarmsteadController extends Controller
                 }
                 $properties->color = $milestone?->color;
                 $properties->milestone_name = $milestone?->name;
+                $properties->milestone_id = $milestone?->id;
                 $geometry_obj = $gen->generatePoint($farm->location);
 
                 return [

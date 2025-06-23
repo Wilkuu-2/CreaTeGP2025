@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\CriterionFillController;
 use App\Http\Controllers\FarmsteadController;
 use App\Http\Controllers\KadasterController;
@@ -14,10 +15,12 @@ Route::get('/', function () {
     return Inertia::render('MapView');
 })->name('home');
 
+Route::get('/map_legend/{team_id}', [MilestoneController::class, "getLegendMilestones"])->name('api:legend');
 Route::post('/map_data', [BRGTileController::class, "getTiles"])->name('api:tiles')->withoutMiddleware([Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::post('/farm_locations', [FarmsteadController::class, "getLocations"])->name('api:farmers')->withoutMiddleware([Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::post('/farm_initiatives', [FarmsteadController::class, "getLocationsWithResults"])->name('api:results')->withoutMiddleware([Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::get('/kadaster', [KadasterController::class, "getArea"])->name('api:kadaster');
+Route::get('/team/namelist', [TeamController::class, "getNameList"])->name('api:team_list');
 
 Route::middleware([
     'auth:sanctum',

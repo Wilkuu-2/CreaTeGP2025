@@ -52,6 +52,7 @@ class Farmstead extends Model
     ];
 
     public function evaluateCurrentMilestoneFor(Team $team): ?Milestone {
+        Log::debug($team);
         if ($this->user == null || !$team->hasUser($this->user)) {
             return null; // User not in team, skipping.
         }

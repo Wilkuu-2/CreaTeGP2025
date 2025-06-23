@@ -82,15 +82,15 @@ const logout = () => {
                                     <template #content>
                                         <!-- Account Management -->
                                         <div class="block px-4 py-2 text-xs text-gray-400">
-                                            Manage Boerderij
+                                            Mijn Boerderij
                                         </div>
 
-                                        <DropdownLink :href="route('farmstead.index')">
+                                        <DropdownLink :href="route('farmstead.edit', user.farmstead_id)">
                                             Informatie
                                         </DropdownLink>
 
                                         <DropdownLink :href="route('fills.farmer')">
-                                            Mijlpalen
+                                            Mijlpalen Invullen
                                         </DropdownLink>
 
                                     </template>

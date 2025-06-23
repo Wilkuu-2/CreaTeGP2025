@@ -3,9 +3,14 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import FarmerMarker from '@/Components/FarmerMarker.vue'
 import {LMap, LTileLayer, LGeoJson, LMarker, LPopup } from "@vue-leaflet/vue-leaflet"
 import "leaflet";
-import { ref, onMounted, watch} from 'vue'
+import { ref, onMounted, watch, computed ,onRenderTriggered} from 'vue';
 import {gjson_point_to_latlng} from '@/util'
+import { usePage } from '@inertiajs/vue3';
+import VueSelect from 'vue3-select-component';
+import axios from 'axios';
+import MapLegend from '@/Components/MapLegend.vue';
 
+const page = usePage();
 const url = ref();
 const attribution = ref('&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors');
 const center = ref([52.23886540758533, 6.856291104103328]);
@@ -16,10 +21,28 @@ var debounce = false;
 var queue = false;
 
 
+const mode = ref('farmers');
+const props = defineProps({
+    tid: undefined,
+});
+const legend = ref();
+
+const tid = ref(props.tid);
+const teams = ref([]);
+
+const selected_team = ref(undefined);
+
 watch(zoom, async(newZ, oldZ) => {
     await refreshMap();
 });
 watch(center, async(newC, oldC) => {
+    await refreshMap();
+});
+
+watch(mode, async(newC, oldC) => {
+    await refreshMap();
+});
+watch(tid, async(newC, oldC) => {
     await refreshMap();
 });
 
@@ -39,11 +62,22 @@ async function refreshMap() {
         blonA: c1.lng,
         blatB: c2.lat,
         blonB: c2.lng,
-        tid: 1
+        tid: tid.value
     }
     if (debounce) {
         // queue = true;
         return;
+    }
+    var url = route('api:farmers');
+    switch (mode.value) {
+        case 'farmer':
+            url = route('api:farmers');
+            break;
+        case 'org':
+            url = route('api:results');
+            break;
+        default:
+            break;
     }
 
     // debounce = true;
@@ -51,7 +85,7 @@ async function refreshMap() {
         const res = await fetch(
             // route('api:tiles'),
             // route('api:farmers'),
-            route('api:results'),
+            url,
             {
                 method: "POST",
                 body: JSON.stringify(request),
@@ -70,6 +104,15 @@ async function refreshMap() {
 }
 
 onMounted(async () => {
+    tid.value = tid.value || page.props.auth.user.current_team_id
+    const response = await axios.get(route('api:team_list'), {
+
+    });
+    console.log(response)
+
+    teams.value =  response.data.map((t) => {
+        return {'label': t.name, 'code': t.id};
+    })
     await refreshMap();
 })
 
@@ -79,11 +122,22 @@ onMounted(async () => {
 <template>
     <AppLayout>
     <div class="grid grid-cols-4">
-        <aside class="border border-blue-400 bg-white p-2">
+        <aside class="border border-lime-400 bg-white p-2">
+                <h4 class="text-lg font-bold">Kaarten</h4>
+                <div>
+                    <input type="radio" name="mode" id="all" value="all" checked v-model="mode"/>
+                    <label for="all" class="p-1">Alle boeren</label>
+                </div>
+                <div>
+                    <input type="radio" name="mode" id="org" value="org" v-model="mode"/>
+                    <label for="all" class="p-1">Initiatief: </label>
+                    <Suspense>
+                        <VueSelect :options="teams" v-model="selected_team"/>
+                    </Suspense>
+                </div>
+
                 <h4 class="text-lg font-bold">Lagen</h4>
-                <a href="">Alle boeren</a>
-                <h5 class="text-sm font-bold">Publiek</h5>
-                <h5 class="text-sm font-bold">Initiatief {{}}</h5>
+                <MapLegend :tid="tid" :mode="mode" v-model="legend"/>
         </aside>
         <div class="map-div h-full col-span-3">
             <l-map ref="main_map" v-model:zoom="zoom" v-model:center="center" v-model:bounds="bounds" >
@@ -92,7 +146,7 @@ onMounted(async () => {
                         layer-type="base"
                         name="OpenStreetMap"
                     ></l-tile-layer>
-                    <FarmerMarker v-for="marker in markers" :marker="marker"/>
+                    <FarmerMarker v-for="marker in markers" :marker="marker" :legend="legend"/>
               </l-map>
         </div>
     </div>

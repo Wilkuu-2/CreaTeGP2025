@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateMilestoneRequest;
 use App\Models\Criterion;
 use App\Models\Milestone;
 use App\Models\Team;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -153,35 +154,36 @@ class MilestoneController extends Controller
             ]
         );
 
-        DB::beginTransaction();
-        $order = $obj['order'];
-        $tid = $obj['tid'];
-        foreach ($order as $index => $mobj) {
-            $mid = $mobj['id'];
-            $milestone = Milestone::findOrFail($mid);
-            $milestone->order = $index;
-            if ($milestone->team_id != $tid) {
-                DB::rollBack();
-                abort(400, "Found milestone that does not belong to the order");
-            }
-            $milestone->save();
-
-            $ccount = 0;
-            foreach ($mobj['criteria'] as $crit_id) {
-                $criterion = Criterion::find($crit_id);
-                if ($criterion->milestone->team_id != $tid) {
+        DB::transaction(function () use ($obj) {
+            $order = $obj['order'];
+            $tid = $obj['tid'];
+            foreach ($order as $index => $mobj) {
+                $mid = $mobj['id'];
+                $milestone = Milestone::findOrFail($mid);
+                $milestone->order = $index;
+                if ($milestone->team_id != $tid) {
                     DB::rollBack();
-                    abort(400, "Found criterion that does not belong to the order");
+                    abort(400, "Found milestone that does not belong to the order");
                 }
-                $criterion->order = $ccount;
-                $criterion->mid = $milestone->id;
-                $criterion->save();
-                $ccount += 1;
-            }
+                $milestone->save();
 
-        }
+                $ccount = 0;
+                foreach ($mobj['criteria'] as $crit_id) {
+                    $criterion = Criterion::find($crit_id);
+                    if ($criterion->milestone->team_id != $tid) {
+                        DB::rollBack();
+                        abort(400, "Found criterion that does not belong to the order");
+                    }
+                    $criterion->order = $ccount;
+                    $criterion->milestone_id = $milestone->id;
+                    $criterion->save();
+                    $ccount += 1;
+                }
+
+            }
+        });
         DB::commit();
-        return redirect(route('milestones.index', ['tid' => $tid] ));
+        return redirect(route('milestones.index', ['tid' => $obj['tid']] ));
     }
 
 
@@ -198,5 +200,10 @@ class MilestoneController extends Controller
 
         $milestone->delete();
         return redirect(route('milestones.index', ['tid' => $tid] ));
+    }
+
+    public function getLegendMilestones(Request $request, int $team_id): JsonResponse
+    {
+        return response()->json(Milestone::whereTeamId($team_id)->whereDoMap(true)->orderBy('order')->get());
     }
 }

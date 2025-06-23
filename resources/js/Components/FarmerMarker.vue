@@ -2,10 +2,18 @@
 import {LMap, LTileLayer, LGeoJson, LMarker, LPopup } from "@vue-leaflet/vue-leaflet"
 import {gjson_point_to_latlng} from '@/util'
 import "leaflet";
+import { computed } from "vue";
 
 const props = defineProps({
     marker: Object,
+    legend: Object,
 });
+
+const enabled = computed(()=>{
+    const id = props.marker.properties.milestone_id || -1;
+    const le = props.legend.find((el) => el.id == id);
+    return le?.enabled || false;
+})
 
 function make_marker_icon(marker){
     const color = marker.properties.color || "#ffffff";
@@ -18,7 +26,7 @@ function make_marker_icon(marker){
 </script>
 
 <template>
-    <l-marker
+    <l-marker v-if="enabled"
         :latLng="gjson_point_to_latlng(marker.geometry)"
         :icon="make_marker_icon(marker)">
         <l-popup :options="{offset: {x: 0, y: -12}}">

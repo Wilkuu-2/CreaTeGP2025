@@ -39,7 +39,7 @@ const name_id_map = computed(() => {
             style="min-width: 80%;"
         >
             <template #item="{element}">
-                <div :id="element.getTag()" class="mcard p-4 mt-4 border border-green-800 rounded-xl">
+                <div :id="element.getTag()" class="mcard p-4 mt-4 border border-green-800 bg-white rounded-xl">
                     <div class="milestone_inner mb-2">
                         <slot name="milestones" :milestone="element" :elock="elock" :name_id_map="name_id_map"/>
                     </div>

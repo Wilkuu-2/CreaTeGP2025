@@ -72,7 +72,7 @@ export function gjson_point_to_latlng(gjson) {
 }
 
 export function style_color(mst) {
-    return  "width: 2em; background-color:" + mst.color + ";";
+    return  "background-color:" + mst.color + ";";
 }
 
 export function id2color(id, id_name_map) {

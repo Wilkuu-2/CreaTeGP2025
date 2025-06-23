@@ -58,7 +58,7 @@ export const milestone_proto = {
     getTag() {
         return milestoneTag(this.id);
     },
-    remove_milestone(edit_lock) {
+    remove_milestone(edit_lock, handle) {
         if (!edit_lock.isEditing()) {
             console.warn("no milestone to delete")
             return
@@ -72,7 +72,7 @@ export const milestone_proto = {
         console.log("url")
         if (confirm("Ben je zeker dat je de mijlpaal wilt verwijderen?")) {
             edit_lock.release();
-            emit('destroy',id);
+            handle(id);
             if (id != undefined && id > 0) {
                 router.delete(
                     route('milestones.destroy', id))
@@ -138,6 +138,9 @@ export const milestone_proto = {
                 constant_type: "data",
                 unit: "ton"
         };
+        Object.setPrototypeOf(criterion, criterion_proto);
+        criterion.cur_crit = {...criterion};
+        Object.setPrototypeOf(criterion.cur_crit, criterion_proto);
         this.criteria.push(criterion);
     },
 
@@ -155,8 +158,8 @@ export const operator_table = {
     'gt': "Meer dan",
     'lte': "Hoogstens",
     'lt': "Minder dan",
-    'link': "Behaal",
-    'check': "Als",
+    'link': "Behaal mijlpaal",
+    'check': "Check",
 }
 
 const criterion_proto = {
@@ -175,7 +178,7 @@ const criterion_proto = {
         // milestone.value = estone;
     },
 
-    remove_criterion(edit_lock) {
+    remove_criterion(edit_lock, handle) {
         if (!edit_lock.isEditing()) {
             console.warn("no milestone to delete")
             return
@@ -187,7 +190,7 @@ const criterion_proto = {
         const id = this.id;
         if (confirm("Ben je zeker dat je de criterion wilt verwijderen?")) {
             edit_lock.release()
-            emit('destroy', id)
+            handle(id);
             if (id != undefined && id > 0) {
                 router.delete(
                     route('criteria.destroy', id))
@@ -325,7 +328,7 @@ export function create_milestone(tree,edit_lock,tid) {
     }
     const milestone  = {
             id: 0,
-            tid : props.tid,
+            tid : tid,
             color : '#FFFFFF',
             hold_duration: 0,
             needs_aproval: false,
@@ -336,7 +339,7 @@ export function create_milestone(tree,edit_lock,tid) {
             criteria : [],
             is_new: true,
     };
-    Object.setPrototypeOf(milestone, milestone_prototype);
+    Object.setPrototypeOf(milestone, milestone_proto);
     tree.push(milestone);
 }
 
@@ -344,6 +347,14 @@ export function destroy_milestone(tree,id) {
     const index = tree.findIndex((mst) => mst.id == id);
     if (index >= 0) {
         tree.splice(index,index);
+    }
+}
+
+export function destroy_criterion(tree,mid,id) {
+    const milestone = tree.find((mst) => mst.id == mid);
+    if (milestone != null) {
+        const index = milestone.criteria.findIndex((crt) => crt.id = id);
+        milestone.criteria.splice(index,index);
     }
 }
 
@@ -362,11 +373,13 @@ export function makeMilestoneOptions(id_name_map, current_id) {
 
 export function reorder_milestones(tree) {
     var order_tree = []
+    var tid = 0;
     tree.forEach((mst, ix) => {
         var mo = {
             id: mst.id,
             criteria: []
         };
+        tid = mst.team_id
         order_tree.push(mo);
         mst.criteria.forEach(crit => {
             mo.criteria.push(crit.id)
@@ -375,7 +388,7 @@ export function reorder_milestones(tree) {
 
     router.patch(
         route('reorder'),{
-            tid: props.tid,
+            tid: tid,
             order: order_tree,
         }
     );
